@@ -1,0 +1,13 @@
+.vscode/launch.json
+.env
+.env.*
+!.env.example
+
+# Go build output
+*.exe
+cmd/api/__debug_bin.exe
+
+# Editor and OS files
+.vscode/settings.json
+.DS_Store
+Thumbs.db
