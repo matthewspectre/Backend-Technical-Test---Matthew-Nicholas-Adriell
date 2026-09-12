@@ -15,13 +15,16 @@ import (
 	producthandler "be_evindo/internal/handler/product"
 	supplierhandler "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
+	warehousehandler "be_evindo/internal/handler/warehouse"
 	productrepository "be_evindo/internal/postgres/product"
 	supplierrepository "be_evindo/internal/postgres/supplier"
 	userrepository "be_evindo/internal/postgres/user"
+	warehouserepository "be_evindo/internal/postgres/warehouse"
 	"be_evindo/internal/router"
 	productusecase "be_evindo/internal/usecase/product"
 	supplierusecase "be_evindo/internal/usecase/supplier"
 	userusecase "be_evindo/internal/usecase/user"
+	warehouseusecase "be_evindo/internal/usecase/warehouse"
 )
 
 func main() {
@@ -37,6 +40,9 @@ func main() {
 	supplierRepository := supplierrepository.NewRepository(database)
 	supplierUsecase := supplierusecase.NewUsecase(supplierRepository)
 	supplierHandler := supplierhandler.NewHandler(supplierUsecase)
+	warehouseRepository := warehouserepository.NewRepository(database)
+	warehouseUsecase := warehouseusecase.NewUsecase(warehouseRepository)
+	warehouseHandler := warehousehandler.NewHandler(warehouseUsecase)
 	userRepository := userrepository.NewRepository(database)
 	userUsecase := userusecase.NewUserUsecase(userRepository, envOrDefault("JWT_SECRET", "be-evindo-development-secret"))
 	userHandler := userhandler.NewUserHandler(userUsecase)
@@ -49,6 +55,7 @@ func main() {
 	router.RegisterLoginRoute(engine, userHandler)
 	router.RegisterProductRoutes(engine, productHandler, userUsecase)
 	router.RegisterSupplierRoutes(engine, supplierHandler, userUsecase)
+	router.RegisterWarehouseRoutes(engine, warehouseHandler, userUsecase)
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort("", envOrDefault("APP_PORT", "8080")),
