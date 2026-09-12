@@ -13,11 +13,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	producthandler "be_evindo/internal/handler/product"
+	supplierhandler "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
 	productrepository "be_evindo/internal/postgres/product"
+	supplierrepository "be_evindo/internal/postgres/supplier"
 	userrepository "be_evindo/internal/postgres/user"
 	"be_evindo/internal/router"
 	productusecase "be_evindo/internal/usecase/product"
+	supplierusecase "be_evindo/internal/usecase/supplier"
 	userusecase "be_evindo/internal/usecase/user"
 )
 
@@ -31,6 +34,9 @@ func main() {
 	productRepository := productrepository.NewRepository(database)
 	productUsecase := productusecase.NewUsecase(productRepository)
 	productHandler := producthandler.NewHandler(productUsecase)
+	supplierRepository := supplierrepository.NewRepository(database)
+	supplierUsecase := supplierusecase.NewUsecase(supplierRepository)
+	supplierHandler := supplierhandler.NewHandler(supplierUsecase)
 	userRepository := userrepository.NewRepository(database)
 	userUsecase := userusecase.NewUserUsecase(userRepository, envOrDefault("JWT_SECRET", "be-evindo-development-secret"))
 	userHandler := userhandler.NewUserHandler(userUsecase)
@@ -42,6 +48,7 @@ func main() {
 	router.RegisterAuthRoutes(engine, userHandler)
 	router.RegisterLoginRoute(engine, userHandler)
 	router.RegisterProductRoutes(engine, productHandler, userUsecase)
+	router.RegisterSupplierRoutes(engine, supplierHandler, userUsecase)
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort("", envOrDefault("APP_PORT", "8080")),

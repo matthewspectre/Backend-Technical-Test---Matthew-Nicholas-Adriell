@@ -10,4 +10,8 @@ psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\001_prod
 psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\002_create_users.sql
 ```
 
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\003_create_suppliers.sql
+```
+
 

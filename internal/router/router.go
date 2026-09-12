@@ -2,6 +2,7 @@ package router
 
 import (
 	hproduct "be_evindo/internal/handler/product"
+	hsupplier "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
 	"be_evindo/internal/middleware"
 	userusecase "be_evindo/internal/usecase/user"
@@ -26,4 +27,14 @@ func RegisterProductRoutes(r *gin.Engine, productHandler *hproduct.Handler, user
 	group.POST("/", productHandler.Create)
 	group.PATCH("/:id", productHandler.Update)
 	group.PATCH("/:id/deactivate", productHandler.Delete)
+}
+
+func RegisterSupplierRoutes(r *gin.Engine, supplierHandler *hsupplier.Handler, userUsecase *userusecase.UserUsecase) {
+	group := r.Group("/suppliers")
+	group.Use(middleware.JWT(userUsecase))
+	group.GET("/", supplierHandler.GetAll)
+	group.GET("/:id", supplierHandler.GetByID)
+	group.POST("/", supplierHandler.Create)
+	group.PATCH("/:id", supplierHandler.Update)
+	group.PATCH("/:id/deactivate", supplierHandler.Delete)
 }
