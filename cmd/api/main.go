@@ -41,7 +41,7 @@ func main() {
 	})
 	router.RegisterAuthRoutes(engine, userHandler)
 	router.RegisterLoginRoute(engine, userHandler)
-	router.RegisterProductRoutes(engine, productHandler)
+	router.RegisterProductRoutes(engine, productHandler, userUsecase)
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort("", envOrDefault("APP_PORT", "8080")),
