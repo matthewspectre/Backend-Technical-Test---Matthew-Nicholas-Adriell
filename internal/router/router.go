@@ -22,5 +22,8 @@ func New(userHandler *handler.UserHandler) http.Handler {
 func RegisterProductRoutes(r *gin.Engine, productHandler *hproduct.Handler) {
 	group := r.Group("/products")
 	group.POST("/", productHandler.Create)
+	group.GET("/", productHandler.GetAll)
 	group.GET("/:id", productHandler.GetByID)
+	group.PATCH("/:id", productHandler.Update)
+	group.PATCH("/:id/deactivate", productHandler.Delete)
 }

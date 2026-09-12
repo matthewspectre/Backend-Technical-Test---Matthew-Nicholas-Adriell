@@ -30,24 +30,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION set_product_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = to_char(
-        CURRENT_TIMESTAMP,
-        'YYYY-MM-DD HH24:MI:SS.USOF'
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS product_updated_at_trigger ON product;
-
-CREATE TRIGGER product_updated_at_trigger
-BEFORE UPDATE ON product
-FOR EACH ROW
-EXECUTE FUNCTION set_product_updated_at();
-
 INSERT INTO product (sku, name, unit, is_active)
 VALUES
     ('TEST-001', 'Product Test One', 'pcs', 1),

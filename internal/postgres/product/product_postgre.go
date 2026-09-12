@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"time"
 
 	entity "be_evindo/internal/entity/product"
 	model "be_evindo/internal/model/product"
@@ -65,4 +66,41 @@ func (repository *RepositoryPostgre) FindByID(ctx context.Context, id int) (*ent
 		return nil, err
 	}
 	return toEntity(productModel), nil
+}
+
+func (repository *RepositoryPostgre) FindAll(ctx context.Context) ([]*entity.Product, error) {
+	var productModels []*model.ProductModel
+	if err := repository.db.WithContext(ctx).
+		Where("is_active = ?", 1).
+		Order("id DESC").
+		Find(&productModels).Error; err != nil {
+		return nil, err
+	}
+
+	products := make([]*entity.Product, 0, len(productModels))
+	for _, productModel := range productModels {
+		products = append(products, toEntity(productModel))
+	}
+	return products, nil
+}
+
+func (repository *RepositoryPostgre) Update(ctx context.Context, id int, updates map[string]interface{}) error {
+	result := repository.db.WithContext(ctx).
+		Model(&model.ProductModel{}).
+		Where("id = ?", id).
+		Updates(updates)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (repository *RepositoryPostgre) Delete(ctx context.Context, id int) error {
+	return repository.Update(ctx, id, map[string]interface{}{
+		"is_active":  0,
+		"updated_at": time.Now().Format("2006-01-02 15:04:05.999999-07"),
+	})
 }
