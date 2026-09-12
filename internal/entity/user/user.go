@@ -3,18 +3,16 @@ package user
 import "context"
 
 type User struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"-"`
+	ID        int64
+	Name      string
+	Email     string
+	Password  string
+	Role      string
+	CreatedAt string
+	UpdatedAt string
 }
 
 type Repository interface {
-	FindByID(ctx context.Context, id int64) (*User, error)
 	Create(ctx context.Context, user *User) error
-}
-
-type Usecase interface {
-	FindByID(ctx context.Context, id int64) (*User, error)
-	Create(ctx context.Context, user *User) error
+	FindByEmail(ctx context.Context, email string) (*User, error)
 }

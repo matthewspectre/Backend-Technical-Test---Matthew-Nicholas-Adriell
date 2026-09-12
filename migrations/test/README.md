@@ -1,9 +1,13 @@
 # Test Migration
 
-Jalankan migration product pada database `be_evindo`:
+Jalankan migration pada database `be_evindo`:
 
 ```powershell
 psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\001_product_test.sql
+```
+
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\002_create_users.sql
 ```
 
 

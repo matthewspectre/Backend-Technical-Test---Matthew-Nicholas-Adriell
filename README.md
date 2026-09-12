@@ -44,10 +44,40 @@ go run ./cmd/api
 Endpoint awal:
 
 - `GET /health`
-- `GET /users/{id}`
-- `POST /users` dengan body `{"name":"Budi","email":"budi@example.com","password":"secret"}`
+- `POST /auth/register`
+- `POST /login`
 - `POST /products/` dengan body `{"sku":"SKU-001","name":"Produk 1","unit":"pcs","is_active":1}`
 - `GET /products/{id}`
+
+Register membuat user dengan role `USER` atau `APPROVER`. Password tetap disimpan dalam bentuk hash.
+
+Login:
+
+```text
+POST http://localhost:8080/login
+```
+
+```json
+{
+	"email": "user@example.com",
+	"password": "secret"
+}
+```
+
+Register a user:
+
+```text
+POST http://localhost:8080/auth/register
+```
+
+```json
+{
+	"name": "User One",
+	"email": "user@example.com",
+	"password": "secret",
+	"role": "USER"
+}
+```
 
 Contoh pengujian di Postman:
 

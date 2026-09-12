@@ -12,13 +12,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"be_evindo/internal/handler"
 	producthandler "be_evindo/internal/handler/product"
-	postgresrepository "be_evindo/internal/postgres"
+	userhandler "be_evindo/internal/handler/user"
 	productrepository "be_evindo/internal/postgres/product"
+	userrepository "be_evindo/internal/postgres/user"
 	"be_evindo/internal/router"
-	"be_evindo/internal/usecase"
 	productusecase "be_evindo/internal/usecase/product"
+	userusecase "be_evindo/internal/usecase/user"
 )
 
 func main() {
@@ -28,27 +28,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sqlDatabase, err := database.DB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer sqlDatabase.Close()
-
-	userRepository := postgresrepository.NewUserRepository(sqlDatabase)
-	userUsecase := usecase.NewUserUsecase(userRepository)
-	userHandler := handler.NewUserHandler(userUsecase)
-
 	productRepository := productrepository.NewRepository(database)
 	productUsecase := productusecase.NewUsecase(productRepository)
 	productHandler := producthandler.NewHandler(productUsecase)
+	userRepository := userrepository.NewRepository(database)
+	userUsecase := userusecase.NewUserUsecase(userRepository, envOrDefault("JWT_SECRET", "be-evindo-development-secret"))
+	userHandler := userhandler.NewUserHandler(userUsecase)
 
 	engine := gin.Default()
 	engine.GET("/health", func(context *gin.Context) {
 		context.Status(http.StatusNoContent)
 	})
-	legacyHandler := router.New(userHandler)
-	engine.GET("/users/:id", gin.WrapH(legacyHandler))
-	engine.POST("/users", gin.WrapH(legacyHandler))
+	router.RegisterAuthRoutes(engine, userHandler)
+	router.RegisterLoginRoute(engine, userHandler)
 	router.RegisterProductRoutes(engine, productHandler)
 
 	server := &http.Server{
