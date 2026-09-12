@@ -18,4 +18,8 @@ psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\003_crea
 psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\004_create_warehouses.sql
 ```
 
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\005_create_inventories.sql
+```
+
 

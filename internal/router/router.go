@@ -1,6 +1,7 @@
 package router
 
 import (
+	hinventory "be_evindo/internal/handler/inventory"
 	hproduct "be_evindo/internal/handler/product"
 	hsupplier "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
@@ -48,4 +49,16 @@ func RegisterWarehouseRoutes(r *gin.Engine, warehouseHandler *hwarehouse.Handler
 	group.POST("/", warehouseHandler.Create)
 	group.PATCH("/:id", warehouseHandler.Update)
 	group.PATCH("/:id/deactivate", warehouseHandler.Delete)
+}
+
+func RegisterInventoryRoutes(r *gin.Engine, inventoryHandler *hinventory.Handler, userUsecase *userusecase.UserUsecase) {
+	group := r.Group("/inventories")
+	group.Use(middleware.JWT(userUsecase))
+	group.GET("/", inventoryHandler.GetAll)
+	group.GET("/:id", inventoryHandler.GetByID)
+	group.GET("/product/:product_id", inventoryHandler.GetByProduct)
+	group.GET("/warehouse/:warehouse_id", inventoryHandler.GetByWarehouse)
+	group.POST("/", inventoryHandler.Create)
+	group.PATCH("/:id", inventoryHandler.Update)
+	group.DELETE("/:id", inventoryHandler.Delete)
 }
