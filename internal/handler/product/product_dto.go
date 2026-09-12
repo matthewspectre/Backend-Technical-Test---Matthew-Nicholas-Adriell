@@ -23,3 +23,8 @@ type ProductResponse struct {
 	CreatedAt string  `json:"created_at"`
 	UpdatedAt *string `json:"updated_at"`
 }
+
+type ProductListResponse struct {
+	Data      []ProductResponse `json:"data"`
+	TotalData int               `json:"total_data"`
+}
