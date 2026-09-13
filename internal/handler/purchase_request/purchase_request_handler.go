@@ -81,9 +81,9 @@ func (handler *Handler) Create(context *gin.Context) {
 }
 
 func (handler *Handler) GetAll(context *gin.Context) {
-	data, err := handler.uc.FindAll(context.Request.Context())
+	data, err := handler.uc.FindAll(context.Request.Context(), context.Query("status"))
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handler.writeError(context, err)
 		return
 	}
 	response := make([]PurchaseRequestResponse, 0, len(data))
@@ -107,7 +107,147 @@ func (handler *Handler) GetByID(context *gin.Context) {
 	context.JSON(http.StatusOK, purchaseRequestResponse(data))
 }
 
+func (handler *Handler) Update(context *gin.Context) {
+	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "invalid purchase request id"})
+		return
+	}
+	var request PurchaseRequestUpdateRequest
+	if err := context.ShouldBindJSON(&request); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	var items []*entity.PurchaseRequestItem
+	if request.Items != nil {
+		items = make([]*entity.PurchaseRequestItem, 0, len(*request.Items))
+		for _, item := range *request.Items {
+			items = append(items, &entity.PurchaseRequestItem{ProductID: item.ProductID, Quantity: item.Quantity})
+		}
+	}
+	if err := handler.uc.Update(context.Request.Context(), id, request.WarehouseID, request.Status, items); err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	data, err := handler.uc.FindByID(context.Request.Context(), id)
+	if err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	context.JSON(http.StatusOK, purchaseRequestResponse(data))
+}
+
+func (handler *Handler) Approve(context *gin.Context) {
+	role, exists := context.Get("user_role")
+	if !exists || role != "APPROVER" {
+		context.JSON(http.StatusForbidden, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_APPROVER_ONLY",
+				"message": "Only users with APPROVER role can approve purchase requests.",
+			},
+		})
+		return
+	}
+	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "invalid purchase request id"})
+		return
+	}
+	if err := handler.uc.Approve(context.Request.Context(), id); err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	data, err := handler.uc.FindByID(context.Request.Context(), id)
+	if err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	context.JSON(http.StatusOK, purchaseRequestResponse(data))
+}
+
+func (handler *Handler) Reject(context *gin.Context) {
+	role, exists := context.Get("user_role")
+	if !exists || role != "APPROVER" {
+		context.JSON(http.StatusForbidden, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_APPROVER_ONLY",
+				"message": "Only users with APPROVER role can reject purchase requests.",
+			},
+		})
+		return
+	}
+	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "invalid purchase request id"})
+		return
+	}
+	if err := handler.uc.Reject(context.Request.Context(), id); err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	data, err := handler.uc.FindByID(context.Request.Context(), id)
+	if err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	context.JSON(http.StatusOK, purchaseRequestResponse(data))
+}
+
 func (handler *Handler) writeError(context *gin.Context, err error) {
+	if errors.Is(err, usecase.ErrApprovalRequiresSubmitted) {
+		context.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_NOT_SUBMITTED",
+				"message": "Only SUBMITTED purchase requests can be approved.",
+			},
+		})
+		return
+	}
+	if errors.Is(err, usecase.ErrRejectionRequiresSubmitted) {
+		context.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_NOT_SUBMITTED",
+				"message": "Only SUBMITTED purchase requests can be rejected.",
+			},
+		})
+		return
+	}
+	if errors.Is(err, usecase.ErrNotDraftNotEditable) {
+		context.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_NOT_DRAFT",
+				"message": "Only DRAFT purchase requests can be edited.",
+			},
+		})
+		return
+	}
+	if errors.Is(err, usecase.ErrUpdateFieldsRequired) {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_UPDATE_FIELDS_REQUIRED",
+				"message": "At least one field is required for update.",
+			},
+		})
+		return
+	}
+	if errors.Is(err, usecase.ErrInvalidStatus) {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_STATUS_INVALID",
+				"message": "Status must be DRAFT, SUBMITTED, APPROVED, or REJECTED.",
+			},
+		})
+		return
+	}
+	if errors.Is(err, usecase.ErrStatusDataNotFound) {
+		context.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"code":    "PURCHASE_REQUEST_STATUS_DATA_NOT_FOUND",
+				"message": "No purchase requests found for the selected status.",
+			},
+		})
+		return
+	}
 	if errors.Is(err, usecase.ErrItemsRequired) {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"error": gin.H{

@@ -70,4 +70,7 @@ func RegisterPurchaseRequestRoutes(r *gin.Engine, purchaseRequestHandler *hpurch
 	group.GET("/", purchaseRequestHandler.GetAll)
 	group.GET("/:id", purchaseRequestHandler.GetByID)
 	group.POST("/", purchaseRequestHandler.Create)
+	group.PATCH("/:id/approve", purchaseRequestHandler.Approve)
+	group.PATCH("/:id/reject", purchaseRequestHandler.Reject)
+	group.PATCH("/:id", purchaseRequestHandler.Update)
 }

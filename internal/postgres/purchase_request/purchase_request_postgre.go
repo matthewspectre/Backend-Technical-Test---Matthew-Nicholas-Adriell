@@ -2,6 +2,7 @@ package purchase_request
 
 import (
 	"context"
+	"time"
 
 	entity "be_evindo/internal/entity/purchase_request"
 	model "be_evindo/internal/model/purchase_request"
@@ -79,14 +80,82 @@ func (repository *RepositoryPostgre) Create(ctx context.Context, data *entity.Pu
 	})
 }
 
-func (repository *RepositoryPostgre) FindAll(ctx context.Context) ([]*entity.PurchaseRequest, error) {
+func (repository *RepositoryPostgre) Update(ctx context.Context, id int64, warehouseID *int, status *string, items []*entity.PurchaseRequestItem) error {
+	return repository.db.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
+		updates := map[string]interface{}{"updated_at": time.Now()}
+		if warehouseID != nil {
+			updates["warehouse_id"] = *warehouseID
+		}
+		if status != nil {
+			updates["status"] = *status
+		}
+		result := transaction.Model(&model.PurchaseRequestModel{}).
+			Where("id = ?", id).Updates(updates)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		if items != nil {
+			if err := transaction.Where("purchase_request_id = ?", id).
+				Delete(&model.PurchaseRequestItemModel{}).Error; err != nil {
+				return err
+			}
+			for _, item := range items {
+				itemModel := &model.PurchaseRequestItemModel{
+					PurchaseRequestID: id,
+					ProductID:         item.ProductID,
+					Quantity:          item.Quantity,
+				}
+				if err := transaction.Create(itemModel).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+}
+
+func (repository *RepositoryPostgre) Approve(ctx context.Context, id int64) error {
+	result := repository.db.WithContext(ctx).
+		Model(&model.PurchaseRequestModel{}).
+		Where("id = ? AND status = ?", id, "SUBMITTED").
+		Updates(map[string]interface{}{"status": "APPROVED", "updated_at": time.Now()})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (repository *RepositoryPostgre) Reject(ctx context.Context, id int64) error {
+	result := repository.db.WithContext(ctx).
+		Model(&model.PurchaseRequestModel{}).
+		Where("id = ? AND status = ?", id, "SUBMITTED").
+		Updates(map[string]interface{}{"status": "REJECTED", "updated_at": time.Now()})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (repository *RepositoryPostgre) FindAll(ctx context.Context, status string) ([]*entity.PurchaseRequest, error) {
 	var models []*model.PurchaseRequestModel
-	if err := repository.db.WithContext(ctx).
+	query := repository.db.WithContext(ctx).
 		Table("purchase_requests pr").
 		Select("pr.*, w.name AS warehouse_name, u.name AS requester_name").
 		Joins("LEFT JOIN warehouse w ON w.id = pr.warehouse_id").
-		Joins("LEFT JOIN users u ON u.id = pr.requested_by").
-		Order("pr.id DESC").Find(&models).Error; err != nil {
+		Joins("LEFT JOIN users u ON u.id = pr.requested_by")
+	if status != "" {
+		query = query.Where("pr.status = ?", status)
+	}
+	if err := query.Order("pr.id DESC").Find(&models).Error; err != nil {
 		return nil, err
 	}
 	if err := repository.loadItems(ctx, models); err != nil {

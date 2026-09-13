@@ -11,6 +11,12 @@ type PurchaseRequestItemCreateRequest struct {
 	Quantity  int `json:"quantity"`
 }
 
+type PurchaseRequestUpdateRequest struct {
+	WarehouseID *int                                `json:"warehouse_id,omitempty"`
+	Status      *string                             `json:"status,omitempty"`
+	Items       *[]PurchaseRequestItemCreateRequest `json:"items,omitempty"`
+}
+
 type PurchaseRequestResponse struct {
 	ID            int64                         `json:"id"`
 	RequestNumber string                        `json:"request_number"`
