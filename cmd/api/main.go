@@ -14,12 +14,14 @@ import (
 
 	inventoryhandler "be_evindo/internal/handler/inventory"
 	producthandler "be_evindo/internal/handler/product"
+	purchaseorderhandler "be_evindo/internal/handler/purchase_order"
 	purchaserequesthandler "be_evindo/internal/handler/purchase_request"
 	supplierhandler "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
 	warehousehandler "be_evindo/internal/handler/warehouse"
 	inventoryrepository "be_evindo/internal/postgres/inventory"
 	productrepository "be_evindo/internal/postgres/product"
+	purchaseorderrepository "be_evindo/internal/postgres/purchase_order"
 	purchaserequestrepository "be_evindo/internal/postgres/purchase_request"
 	supplierrepository "be_evindo/internal/postgres/supplier"
 	userrepository "be_evindo/internal/postgres/user"
@@ -27,6 +29,7 @@ import (
 	"be_evindo/internal/router"
 	inventoryusecase "be_evindo/internal/usecase/inventory"
 	productusecase "be_evindo/internal/usecase/product"
+	purchaseorderusecase "be_evindo/internal/usecase/purchase_order"
 	purchaserequestusecase "be_evindo/internal/usecase/purchase_request"
 	supplierusecase "be_evindo/internal/usecase/supplier"
 	userusecase "be_evindo/internal/usecase/user"
@@ -55,6 +58,9 @@ func main() {
 	purchaseRequestRepository := purchaserequestrepository.NewRepository(database)
 	purchaseRequestUsecase := purchaserequestusecase.NewUsecase(purchaseRequestRepository, warehouseRepository)
 	purchaseRequestHandler := purchaserequesthandler.NewHandler(purchaseRequestUsecase)
+	purchaseOrderRepository := purchaseorderrepository.NewRepository(database)
+	purchaseOrderUsecase := purchaseorderusecase.NewUsecase(purchaseOrderRepository, purchaseRequestRepository, supplierRepository)
+	purchaseOrderHandler := purchaseorderhandler.NewHandler(purchaseOrderUsecase)
 	userRepository := userrepository.NewRepository(database)
 	userUsecase := userusecase.NewUserUsecase(userRepository, envOrDefault("JWT_SECRET", "be-evindo-development-secret"))
 	userHandler := userhandler.NewUserHandler(userUsecase)
@@ -70,6 +76,7 @@ func main() {
 	router.RegisterWarehouseRoutes(engine, warehouseHandler, userUsecase)
 	router.RegisterInventoryRoutes(engine, inventoryHandler, userUsecase)
 	router.RegisterPurchaseRequestRoutes(engine, purchaseRequestHandler, userUsecase)
+	router.RegisterPurchaseOrderRoutes(engine, purchaseOrderHandler, userUsecase)
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort("", envOrDefault("APP_PORT", "8080")),
