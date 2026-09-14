@@ -16,7 +16,9 @@ import (
 type Usecase interface {
 	CreateFromPurchaseRequest(ctx context.Context, purchaseRequestID int64, supplierID int) (*entity.PurchaseOrder, error)
 	UpdateStatus(ctx context.Context, id int64, status string) error
+	FindAll(ctx context.Context, status string) ([]*entity.PurchaseOrder, error)
 	FindByID(ctx context.Context, id int64) (*entity.PurchaseOrder, error)
+	FindByPurchaseRequestID(ctx context.Context, purchaseRequestID int64) (*entity.PurchaseOrder, error)
 }
 
 var ErrPurchaseRequestNotApproved = errors.New("only approved purchase requests can create purchase orders")
@@ -85,6 +87,21 @@ func (usecase *usecase) FindByID(ctx context.Context, id int64) (*entity.Purchas
 		return nil, errors.New("purchase order id must be greater than zero")
 	}
 	return usecase.repository.FindByID(ctx, id)
+}
+
+func (usecase *usecase) FindByPurchaseRequestID(ctx context.Context, purchaseRequestID int64) (*entity.PurchaseOrder, error) {
+	if purchaseRequestID <= 0 {
+		return nil, errors.New("purchase request id must be greater than zero")
+	}
+	return usecase.repository.FindByPurchaseRequestID(ctx, purchaseRequestID)
+}
+
+func (usecase *usecase) FindAll(ctx context.Context, status string) ([]*entity.PurchaseOrder, error) {
+	status = strings.ToUpper(strings.TrimSpace(status))
+	if status != "" && status != "DRAFT" && status != "ORDERED" && status != "PARTIALLY_RECEIVED" && status != "RECEIVED" && status != "CANCELLED" {
+		return nil, ErrInvalidPurchaseOrderStatus
+	}
+	return usecase.repository.FindAll(ctx, status)
 }
 
 func (usecase *usecase) UpdateStatus(ctx context.Context, id int64, status string) error {

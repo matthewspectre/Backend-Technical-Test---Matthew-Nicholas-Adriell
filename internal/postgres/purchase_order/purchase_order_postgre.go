@@ -90,6 +90,29 @@ func (repository *RepositoryPostgre) UpdateStatus(ctx context.Context, id int64,
 	return nil
 }
 
+func (repository *RepositoryPostgre) FindAll(ctx context.Context, status string) ([]*entity.PurchaseOrder, error) {
+	var orders []*model.PurchaseOrderModel
+	query := repository.db.WithContext(ctx).
+		Table("purchase_orders po").
+		Select("po.*, s.name AS supplier_name, w.name AS warehouse_name").
+		Joins("LEFT JOIN supplier s ON s.id = po.supplier_id").
+		Joins("LEFT JOIN warehouse w ON w.id = po.warehouse_id")
+	if status != "" {
+		query = query.Where("po.status = ?", status)
+	}
+	if err := query.Order("po.id DESC").Find(&orders).Error; err != nil {
+		return nil, err
+	}
+	if err := repository.loadItems(ctx, orders); err != nil {
+		return nil, err
+	}
+	result := make([]*entity.PurchaseOrder, 0, len(orders))
+	for _, order := range orders {
+		result = append(result, toEntity(order))
+	}
+	return result, nil
+}
+
 func (repository *RepositoryPostgre) FindByID(ctx context.Context, id int64) (*entity.PurchaseOrder, error) {
 	orderModel := &model.PurchaseOrderModel{}
 	if err := repository.db.WithContext(ctx).

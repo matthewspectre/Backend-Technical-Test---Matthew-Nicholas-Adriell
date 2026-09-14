@@ -73,6 +73,33 @@ func (handler *Handler) GetByID(context *gin.Context) {
 	context.JSON(http.StatusOK, purchaseOrderResponse(data))
 }
 
+func (handler *Handler) GetByPurchaseRequestID(context *gin.Context) {
+	purchaseRequestID, err := strconv.ParseInt(context.Param("purchase_request_id"), 10, 64)
+	if err != nil || purchaseRequestID <= 0 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "invalid purchase request id"})
+		return
+	}
+	data, err := handler.uc.FindByPurchaseRequestID(context.Request.Context(), purchaseRequestID)
+	if err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	context.JSON(http.StatusOK, purchaseOrderResponse(data))
+}
+
+func (handler *Handler) GetAll(context *gin.Context) {
+	data, err := handler.uc.FindAll(context.Request.Context(), context.Query("status"))
+	if err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	response := make([]PurchaseOrderResponse, 0, len(data))
+	for _, order := range data {
+		response = append(response, purchaseOrderResponse(order))
+	}
+	context.JSON(http.StatusOK, PurchaseOrderListResponse{Data: response, TotalData: len(response)})
+}
+
 func (handler *Handler) UpdateStatus(context *gin.Context) {
 	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil || id <= 0 {

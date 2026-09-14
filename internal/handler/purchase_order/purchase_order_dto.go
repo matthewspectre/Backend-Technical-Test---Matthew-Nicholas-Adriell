@@ -30,3 +30,8 @@ type PurchaseOrderItemResponse struct {
 	OrderedQuantity  int    `json:"ordered_quantity"`
 	ReceivedQuantity int    `json:"received_quantity"`
 }
+
+type PurchaseOrderListResponse struct {
+	Data      []PurchaseOrderResponse `json:"data"`
+	TotalData int                     `json:"total_data"`
+}
