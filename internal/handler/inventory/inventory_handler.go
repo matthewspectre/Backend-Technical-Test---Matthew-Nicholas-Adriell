@@ -194,6 +194,20 @@ func (handler *Handler) listResponse(data []*entity.Inventory) InventoryListResp
 }
 
 func (handler *Handler) writeError(context *gin.Context, err error) {
+	if errors.Is(err, usecase.ErrInactiveProduct) {
+		context.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"code":    "INVENTORY_PRODUCT_INACTIVE",
+			"message": "Inactive product cannot be used for new inventory.",
+		}})
+		return
+	}
+	if errors.Is(err, usecase.ErrInactiveWarehouse) {
+		context.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"code":    "INVENTORY_WAREHOUSE_INACTIVE",
+			"message": "Inactive warehouse cannot be used for new inventory.",
+		}})
+		return
+	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		context.JSON(http.StatusNotFound, gin.H{"error": "inventory not found"})
 		return

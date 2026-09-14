@@ -7,6 +7,7 @@ import (
 
 	entity "be_evindo/internal/entity/inventory"
 	repo "be_evindo/internal/repository/inventory"
+	productrepo "be_evindo/internal/repository/product"
 	warehouserepo "be_evindo/internal/repository/warehouse"
 )
 
@@ -23,10 +24,14 @@ type Usecase interface {
 type usecase struct {
 	repository          repo.InventoryRepository
 	warehouseRepository warehouserepo.WarehouseRepository
+	productRepository   productrepo.ProductRepository
 }
 
-func NewUsecase(repository repo.InventoryRepository, warehouseRepository warehouserepo.WarehouseRepository) Usecase {
-	return &usecase{repository: repository, warehouseRepository: warehouseRepository}
+var ErrInactiveWarehouse = errors.New("inactive warehouse cannot be used for inventory")
+var ErrInactiveProduct = errors.New("inactive product cannot be used for inventory")
+
+func NewUsecase(repository repo.InventoryRepository, warehouseRepository warehouserepo.WarehouseRepository, productRepository productrepo.ProductRepository) Usecase {
+	return &usecase{repository: repository, warehouseRepository: warehouseRepository, productRepository: productRepository}
 }
 
 func (usecase *usecase) Create(ctx context.Context, data *entity.Inventory) error {
@@ -45,7 +50,14 @@ func (usecase *usecase) Create(ctx context.Context, data *entity.Inventory) erro
 		return err
 	}
 	if warehouse == nil || warehouse.IsActive != 1 {
-		return errors.New("inactive warehouses cannot be used for new inventory transactions")
+		return ErrInactiveWarehouse
+	}
+	product, err := usecase.productRepository.FindByID(ctx, data.ProductID)
+	if err != nil {
+		return err
+	}
+	if product == nil || product.IsActive != 1 {
+		return ErrInactiveProduct
 	}
 	return usecase.repository.Create(ctx, data)
 }

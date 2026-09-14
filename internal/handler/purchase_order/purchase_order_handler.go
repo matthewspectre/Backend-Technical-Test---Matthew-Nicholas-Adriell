@@ -124,6 +124,12 @@ func (handler *Handler) UpdateStatus(context *gin.Context) {
 }
 
 func (handler *Handler) writeError(context *gin.Context, err error) {
+	if errors.Is(err, usecase.ErrInactiveSupplier) {
+		context.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"code": "PURCHASE_ORDER_SUPPLIER_INACTIVE", "message": "Inactive supplier cannot be used for new Purchase Order.",
+		}})
+		return
+	}
 	if errors.Is(err, usecase.ErrInvalidPurchaseOrderStatus) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
 			"code": "PURCHASE_ORDER_STATUS_INVALID", "message": "Status must be DRAFT, ORDERED, PARTIALLY_RECEIVED, RECEIVED, or CANCELLED.",
