@@ -3,6 +3,7 @@ package router
 import (
 	hinventory "be_evindo/internal/handler/inventory"
 	hproduct "be_evindo/internal/handler/product"
+	hpurchaseorder "be_evindo/internal/handler/purchase_order"
 	hpurchaserequest "be_evindo/internal/handler/purchase_request"
 	hsupplier "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
@@ -73,4 +74,14 @@ func RegisterPurchaseRequestRoutes(r *gin.Engine, purchaseRequestHandler *hpurch
 	group.PATCH("/:id/approve", purchaseRequestHandler.Approve)
 	group.PATCH("/:id/reject", purchaseRequestHandler.Reject)
 	group.PATCH("/:id", purchaseRequestHandler.Update)
+}
+
+func RegisterPurchaseOrderRoutes(r *gin.Engine, purchaseOrderHandler *hpurchaseorder.Handler, userUsecase *userusecase.UserUsecase) {
+	group := r.Group("/purchase-orders")
+	group.Use(middleware.JWT(userUsecase))
+	group.GET("/", purchaseOrderHandler.GetAll)
+	group.GET("/purchase-request/:purchase_request_id", purchaseOrderHandler.GetByPurchaseRequestID)
+	group.GET("/:id", purchaseOrderHandler.GetByID)
+	group.PATCH("/:id/status", purchaseOrderHandler.UpdateStatus)
+	r.POST("/purchase-requests/:purchase_request_id/purchase-order", middleware.JWT(userUsecase), purchaseOrderHandler.CreateFromPurchaseRequest)
 }

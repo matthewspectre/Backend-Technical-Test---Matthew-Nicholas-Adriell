@@ -26,4 +26,16 @@ psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\005_crea
 psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\006_create_purchase_requests.sql
 ```
 
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\007_create_purchase_orders.sql
+```
+
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\008_create_purchase_order_items.sql
+```
+
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\009_update_purchase_order_status_constraint.sql
+```
+
 
