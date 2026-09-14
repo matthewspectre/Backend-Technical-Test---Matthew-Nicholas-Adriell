@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.purchase_orders (
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL,
-    CONSTRAINT purchase_orders_status_check CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED')),
+    CONSTRAINT purchase_orders_status_check CHECK (status IN ('DRAFT', 'ORDERED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED')),
     CONSTRAINT purchase_orders_request_fk FOREIGN KEY (purchase_request_id)
         REFERENCES public.purchase_requests(id),
     CONSTRAINT purchase_orders_supplier_fk FOREIGN KEY (supplier_id)
@@ -18,4 +18,9 @@ CREATE TABLE IF NOT EXISTS public.purchase_orders (
 
 ALTER TABLE public.purchase_orders
     ALTER COLUMN po_number DROP DEFAULT;
+
+
+
+
+
 

@@ -80,5 +80,6 @@ func RegisterPurchaseOrderRoutes(r *gin.Engine, purchaseOrderHandler *hpurchaseo
 	group := r.Group("/purchase-orders")
 	group.Use(middleware.JWT(userUsecase))
 	group.GET("/:id", purchaseOrderHandler.GetByID)
+	group.PATCH("/:id/status", purchaseOrderHandler.UpdateStatus)
 	r.POST("/purchase-requests/:purchase_request_id/purchase-order", middleware.JWT(userUsecase), purchaseOrderHandler.CreateFromPurchaseRequest)
 }

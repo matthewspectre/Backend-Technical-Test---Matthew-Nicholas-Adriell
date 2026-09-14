@@ -23,11 +23,19 @@ func NewHandler(uc usecase.Usecase) *Handler {
 }
 
 func purchaseOrderResponse(data *entity.PurchaseOrder) PurchaseOrderResponse {
+	items := make([]PurchaseOrderItemResponse, 0, len(data.Items))
+	for _, item := range data.Items {
+		items = append(items, PurchaseOrderItemResponse{
+			ID: item.ID, ProductID: item.ProductID, ProductName: item.ProductName,
+			Unit: item.Unit, OrderedQuantity: item.OrderedQuantity,
+			ReceivedQuantity: item.ReceivedQuantity,
+		})
+	}
 	return PurchaseOrderResponse{
 		ID: data.ID, PONumber: data.PONumber, PurchaseRequestID: data.PurchaseRequestID,
 		SupplierID: data.SupplierID, SupplierName: data.SupplierName,
 		WarehouseID: data.WarehouseID, WarehouseName: data.WarehouseName,
-		Status: data.Status, CreatedAt: data.CreatedAt.Format(responseTimeLayout),
+		Status: data.Status, Items: items, CreatedAt: data.CreatedAt.Format(responseTimeLayout),
 		UpdatedAt: data.UpdatedAt.Format(responseTimeLayout),
 	}
 }
@@ -65,7 +73,36 @@ func (handler *Handler) GetByID(context *gin.Context) {
 	context.JSON(http.StatusOK, purchaseOrderResponse(data))
 }
 
+func (handler *Handler) UpdateStatus(context *gin.Context) {
+	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "invalid purchase order id"})
+		return
+	}
+	var request PurchaseOrderStatusUpdateRequest
+	if err := context.ShouldBindJSON(&request); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := handler.uc.UpdateStatus(context.Request.Context(), id, request.Status); err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	data, err := handler.uc.FindByID(context.Request.Context(), id)
+	if err != nil {
+		handler.writeError(context, err)
+		return
+	}
+	context.JSON(http.StatusOK, purchaseOrderResponse(data))
+}
+
 func (handler *Handler) writeError(context *gin.Context, err error) {
+	if errors.Is(err, usecase.ErrInvalidPurchaseOrderStatus) {
+		context.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
+			"code": "PURCHASE_ORDER_STATUS_INVALID", "message": "Status must be DRAFT, ORDERED, PARTIALLY_RECEIVED, RECEIVED, or CANCELLED.",
+		}})
+		return
+	}
 	if errors.Is(err, usecase.ErrPurchaseRequestNotApproved) {
 		context.JSON(http.StatusConflict, gin.H{"error": gin.H{
 			"code": "PURCHASE_REQUEST_NOT_APPROVED", "message": "Only APPROVED purchase requests can create purchase orders.",
