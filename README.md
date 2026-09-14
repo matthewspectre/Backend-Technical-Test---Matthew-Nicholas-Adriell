@@ -14,3 +14,5 @@ Golang dengan konsep Clean Architecture.
                         7. router
                             8. main
 ```
+
+<img width="1480" height="920" alt="image" src="https://github.com/user-attachments/assets/a412dd85-ebbf-4080-b5c9-e8d34b6e0ae8" />
