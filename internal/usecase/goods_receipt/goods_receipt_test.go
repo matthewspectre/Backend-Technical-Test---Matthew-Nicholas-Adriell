@@ -122,3 +122,34 @@ func TestCreate_IncreasesInventoryStockByReceivedQuantity(t *testing.T) {
 		t.Fatalf("expected inventory stock to increase by 4, got %d", got)
 	}
 }
+
+func TestCreate_WhenPurchaseOrderAlreadyReceived_ShouldReturnError(t *testing.T) {
+	repo := &fakeGoodsReceiptRepository{inventory: map[string]int{}}
+	poRepo := &fakePurchaseOrderRepository{
+		order: &purchaseorderentity.PurchaseOrder{
+			ID:          44,
+			WarehouseID: 2,
+			Status:      "RECEIVED",
+			Items: []*purchaseorderentity.PurchaseOrderItem{
+				{ID: 99, ProductID: 7, OrderedQuantity: 10, ReceivedQuantity: 10},
+			},
+		},
+	}
+	uc := NewUsecase(repo, poRepo)
+
+	data := &goodsreceipentity.GoodsReceipt{
+		ReceivedBy:      1,
+		PurchaseOrderID: 44,
+		Items: []*goodsreceipentity.GoodsReceiptItem{
+			{ProductID: 7, ReceivedQuantity: 1},
+		},
+	}
+
+	err := uc.Create(context.Background(), data)
+	if err == nil {
+		t.Fatal("Create() expected error when purchase order status is already RECEIVED")
+	}
+	if err != ErrPurchaseOrderAlreadyReceived {
+		t.Fatalf("expected ErrPurchaseOrderAlreadyReceived, got %v", err)
+	}
+}
