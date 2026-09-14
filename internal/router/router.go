@@ -1,6 +1,7 @@
 package router
 
 import (
+	hgoodsreceipt "be_evindo/internal/handler/goods_receipt"
 	hinventory "be_evindo/internal/handler/inventory"
 	hproduct "be_evindo/internal/handler/product"
 	hpurchaseorder "be_evindo/internal/handler/purchase_order"
@@ -84,4 +85,15 @@ func RegisterPurchaseOrderRoutes(r *gin.Engine, purchaseOrderHandler *hpurchaseo
 	group.GET("/:id", purchaseOrderHandler.GetByID)
 	group.PATCH("/:id/status", purchaseOrderHandler.UpdateStatus)
 	r.POST("/purchase-requests/:purchase_request_id/purchase-order", middleware.JWT(userUsecase), purchaseOrderHandler.CreateFromPurchaseRequest)
+}
+
+func RegisterGoodsReceiptRoutes(r *gin.Engine, goodsReceiptHandler *hgoodsreceipt.Handler, userUsecase *userusecase.UserUsecase) {
+	purchaseOrderGroup := r.Group("/purchase-orders")
+	purchaseOrderGroup.Use(middleware.JWT(userUsecase))
+	purchaseOrderGroup.POST("/:purchase_order_id/goods-receipts", goodsReceiptHandler.Create)
+
+	goodsReceiptGroup := r.Group("/goods-receipts")
+	goodsReceiptGroup.Use(middleware.JWT(userUsecase))
+	goodsReceiptGroup.GET("/", goodsReceiptHandler.GetAll)
+	goodsReceiptGroup.GET("/:id", goodsReceiptHandler.GetByID)
 }

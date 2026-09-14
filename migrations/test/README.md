@@ -38,4 +38,12 @@ psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\008_crea
 psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\009_update_purchase_order_status_constraint.sql
 ```
 
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\010_create_goods_receipts.sql
+```
+
+```powershell
+psql -U postgres -h localhost -p 5432 -d be_evindo -f .\migrations\test\011_create_goods_receipt_items.sql
+```
+
 

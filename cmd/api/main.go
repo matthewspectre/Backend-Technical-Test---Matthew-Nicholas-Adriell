@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	goodsreceipthandler "be_evindo/internal/handler/goods_receipt"
 	inventoryhandler "be_evindo/internal/handler/inventory"
 	producthandler "be_evindo/internal/handler/product"
 	purchaseorderhandler "be_evindo/internal/handler/purchase_order"
@@ -19,6 +20,7 @@ import (
 	supplierhandler "be_evindo/internal/handler/supplier"
 	userhandler "be_evindo/internal/handler/user"
 	warehousehandler "be_evindo/internal/handler/warehouse"
+	goodsreceiptrepository "be_evindo/internal/postgres/goods_receipt"
 	inventoryrepository "be_evindo/internal/postgres/inventory"
 	productrepository "be_evindo/internal/postgres/product"
 	purchaseorderrepository "be_evindo/internal/postgres/purchase_order"
@@ -27,6 +29,7 @@ import (
 	userrepository "be_evindo/internal/postgres/user"
 	warehouserepository "be_evindo/internal/postgres/warehouse"
 	"be_evindo/internal/router"
+	goodsreceiptusecase "be_evindo/internal/usecase/goods_receipt"
 	inventoryusecase "be_evindo/internal/usecase/inventory"
 	productusecase "be_evindo/internal/usecase/product"
 	purchaseorderusecase "be_evindo/internal/usecase/purchase_order"
@@ -61,6 +64,9 @@ func main() {
 	purchaseOrderRepository := purchaseorderrepository.NewRepository(database)
 	purchaseOrderUsecase := purchaseorderusecase.NewUsecase(purchaseOrderRepository, purchaseRequestRepository, supplierRepository)
 	purchaseOrderHandler := purchaseorderhandler.NewHandler(purchaseOrderUsecase)
+	goodsReceiptRepository := goodsreceiptrepository.NewRepository(database)
+	goodsReceiptUsecase := goodsreceiptusecase.NewUsecase(goodsReceiptRepository, purchaseOrderRepository)
+	goodsReceiptHandler := goodsreceipthandler.NewHandler(goodsReceiptUsecase)
 	userRepository := userrepository.NewRepository(database)
 	userUsecase := userusecase.NewUserUsecase(userRepository, envOrDefault("JWT_SECRET", "be-evindo-development-secret"))
 	userHandler := userhandler.NewUserHandler(userUsecase)
@@ -77,6 +83,7 @@ func main() {
 	router.RegisterInventoryRoutes(engine, inventoryHandler, userUsecase)
 	router.RegisterPurchaseRequestRoutes(engine, purchaseRequestHandler, userUsecase)
 	router.RegisterPurchaseOrderRoutes(engine, purchaseOrderHandler, userUsecase)
+	router.RegisterGoodsReceiptRoutes(engine, goodsReceiptHandler, userUsecase)
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort("", envOrDefault("APP_PORT", "8080")),
