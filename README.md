@@ -4,7 +4,8 @@ Golang dengan konsep Clean Architecture.
 
 ## Struktur
 
-```Clean Architecture Golang:
+```
+Clean Architecture Golang:
 1. Entity
     2. Repository
         3. Model
@@ -17,6 +18,7 @@ Golang dengan konsep Clean Architecture.
 
 
 # be_evindo
-```Aplikasi ini dirancang untuk mengelola proses inventory dan procurement, yang mencakup pengelolaan produk, supplier, warehouse, Purchase Request (PR), Purchase Order (PO), s
+```
+Aplikasi ini dirancang untuk mengelola proses inventory dan procurement, yang mencakup pengelolaan produk, supplier, warehouse, Purchase Request (PR), Purchase Order (PO), s
 erta proses penerimaan barang (Goods Receipt).
 ```
