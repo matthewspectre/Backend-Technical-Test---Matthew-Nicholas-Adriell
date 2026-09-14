@@ -11,6 +11,7 @@ import (
 
 type fakePurchaseRequestRepository struct {
 	created *entity.PurchaseRequest
+	request *entity.PurchaseRequest
 }
 
 func (f *fakePurchaseRequestRepository) Create(ctx context.Context, data *entity.PurchaseRequest) error {
@@ -35,7 +36,10 @@ func (f *fakePurchaseRequestRepository) FindAll(ctx context.Context, status stri
 }
 
 func (f *fakePurchaseRequestRepository) FindByID(ctx context.Context, id int64) (*entity.PurchaseRequest, error) {
-	return nil, nil
+	if f.request == nil {
+		return nil, nil
+	}
+	return f.request, nil
 }
 
 type fakeWarehouseRepository struct {
@@ -92,7 +96,7 @@ func (f *fakeProductRepository) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func TestCreate_EmptyItems_ShouldReturnError(t *testing.T) {
+func TestCreate_WithoutItems(t *testing.T) {
 	warehouseRepo := &fakeWarehouseRepository{warehouse: &warehouseentity.Warehouse{ID: 1, IsActive: 1}}
 	productRepo := &fakeProductRepository{product: &productentity.Product{ID: 10, IsActive: 1}}
 	repo := &fakePurchaseRequestRepository{}
@@ -111,5 +115,22 @@ func TestCreate_EmptyItems_ShouldReturnError(t *testing.T) {
 	}
 	if err != ErrItemsRequired {
 		t.Fatalf("expected ErrItemsRequired, got %v", err)
+	}
+}
+
+func TestUpdate_NotSubmitted(t *testing.T) {
+	warehouseRepo := &fakeWarehouseRepository{warehouse: &warehouseentity.Warehouse{ID: 1, IsActive: 1}}
+	productRepo := &fakeProductRepository{product: &productentity.Product{ID: 10, IsActive: 1}}
+	repo := &fakePurchaseRequestRepository{
+		request: &entity.PurchaseRequest{ID: 3, Status: "DRAFT"},
+	}
+	uc := NewUsecase(repo, warehouseRepo, productRepo)
+
+	err := uc.Approve(context.Background(), 3)
+	if err == nil {
+		t.Fatal("Approve() expected error when status is not SUBMITTED")
+	}
+	if err != ErrApprovalRequiresSubmitted {
+		t.Fatalf("expected ErrApprovalRequiresSubmitted, got %v", err)
 	}
 }
