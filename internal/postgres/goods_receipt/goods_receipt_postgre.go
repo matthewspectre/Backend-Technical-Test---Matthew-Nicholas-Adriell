@@ -73,6 +73,20 @@ func (repository *RepositoryPostgre) Create(ctx context.Context, data *entity.Go
 			if err := transaction.Model(&pomodel.PurchaseOrderItemModel{}).Where("id = ?", receiptItem.PurchaseOrderItemID).UpdateColumn("received_quantity", gorm.Expr("received_quantity + ?", receiptItem.ReceivedQuantity)).Error; err != nil {
 				return err
 			}
+			if err := transaction.Exec(`
+				INSERT INTO inventory (product_id, warehouse_id, stock, created_at, updated_at)
+				VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+				ON CONFLICT (product_id, warehouse_id)
+				DO UPDATE SET stock = inventory.stock + EXCLUDED.stock, updated_at = CURRENT_TIMESTAMP
+			`, receiptItem.ProductID, data.WarehouseID, receiptItem.ReceivedQuantity).Error; err != nil {
+				return err
+			}
+			if err := transaction.Exec(`
+				INSERT INTO inventory_movements (warehouse_id, product_id, movement_type, quantity, reference, created_at)
+				VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+			`, data.WarehouseID, receiptItem.ProductID, "PURCHASE_RECEIPT", receiptItem.ReceivedQuantity, data.ReceiptNumber).Error; err != nil {
+				return err
+			}
 		}
 		var remaining int64
 		if err := transaction.Model(&pomodel.PurchaseOrderItemModel{}).Where("purchase_order_id = ? AND received_quantity < ordered_quantity", data.PurchaseOrderID).Count(&remaining).Error; err != nil {
