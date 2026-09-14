@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	entity "be_evindo/internal/entity/purchase_request"
+	productrepo "be_evindo/internal/repository/product"
 	repo "be_evindo/internal/repository/purchase_request"
 	warehouserepo "be_evindo/internal/repository/warehouse"
 )
@@ -27,14 +28,17 @@ var ErrUpdateFieldsRequired = errors.New("at least one field is required")
 var ErrNotDraftNotEditable = errors.New("only draft purchase requests can be edited")
 var ErrApprovalRequiresSubmitted = errors.New("only submitted purchase requests can be approved")
 var ErrRejectionRequiresSubmitted = errors.New("only submitted purchase requests can be rejected")
+var ErrInactiveWarehouse = errors.New("inactive warehouse cannot be used for purchase requests")
+var ErrInactiveProduct = errors.New("inactive product cannot be used for purchase requests")
 
 type usecase struct {
 	repository          repo.PurchaseRequestRepository
 	warehouseRepository warehouserepo.WarehouseRepository
+	productRepository   productrepo.ProductRepository
 }
 
-func NewUsecase(repository repo.PurchaseRequestRepository, warehouseRepository warehouserepo.WarehouseRepository) Usecase {
-	return &usecase{repository: repository, warehouseRepository: warehouseRepository}
+func NewUsecase(repository repo.PurchaseRequestRepository, warehouseRepository warehouserepo.WarehouseRepository, productRepository productrepo.ProductRepository) Usecase {
+	return &usecase{repository: repository, warehouseRepository: warehouseRepository, productRepository: productRepository}
 }
 
 func (usecase *usecase) Create(ctx context.Context, data *entity.PurchaseRequest) error {
@@ -73,7 +77,16 @@ func (usecase *usecase) Create(ctx context.Context, data *entity.PurchaseRequest
 		return err
 	}
 	if warehouse == nil || warehouse.IsActive != 1 {
-		return errors.New("inactive warehouses cannot be used for purchase requests")
+		return ErrInactiveWarehouse
+	}
+	for _, item := range data.Items {
+		product, err := usecase.productRepository.FindByID(ctx, item.ProductID)
+		if err != nil {
+			return err
+		}
+		if product == nil || product.IsActive != 1 {
+			return ErrInactiveProduct
+		}
 	}
 	return usecase.repository.Create(ctx, data)
 }

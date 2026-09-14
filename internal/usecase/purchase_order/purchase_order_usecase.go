@@ -24,6 +24,7 @@ type Usecase interface {
 var ErrPurchaseRequestNotApproved = errors.New("only approved purchase requests can create purchase orders")
 var ErrPurchaseOrderAlreadyExists = errors.New("purchase order already exists for this purchase request")
 var ErrInvalidPurchaseOrderStatus = errors.New("status must be DRAFT, ORDERED, PARTIALLY_RECEIVED, RECEIVED, or CANCELLED")
+var ErrInactiveSupplier = errors.New("inactive supplier cannot be used for purchase orders")
 
 type usecase struct {
 	repository                repo.PurchaseOrderRepository
@@ -61,7 +62,7 @@ func (usecase *usecase) CreateFromPurchaseRequest(ctx context.Context, purchaseR
 		return nil, err
 	}
 	if supplier == nil || supplier.IsActive != 1 {
-		return nil, errors.New("inactive suppliers cannot be used for purchase orders")
+		return nil, ErrInactiveSupplier
 	}
 	data := &entity.PurchaseOrder{
 		PurchaseRequestID: purchaseRequestID,

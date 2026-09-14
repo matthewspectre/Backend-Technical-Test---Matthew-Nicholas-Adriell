@@ -194,6 +194,20 @@ func (handler *Handler) Reject(context *gin.Context) {
 }
 
 func (handler *Handler) writeError(context *gin.Context, err error) {
+	if errors.Is(err, usecase.ErrInactiveWarehouse) {
+		context.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"code":    "PURCHASE_REQUEST_WAREHOUSE_INACTIVE",
+			"message": "Inactive warehouse cannot be used for new Purchase Request.",
+		}})
+		return
+	}
+	if errors.Is(err, usecase.ErrInactiveProduct) {
+		context.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"code":    "PURCHASE_REQUEST_PRODUCT_INACTIVE",
+			"message": "Inactive product cannot be used for new Purchase Request.",
+		}})
+		return
+	}
 	if errors.Is(err, usecase.ErrApprovalRequiresSubmitted) {
 		context.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{
