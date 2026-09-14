@@ -101,10 +101,16 @@ func (handler *Handler) writeError(context *gin.Context, err error) {
 	switch {
 	case errors.Is(err, usecase.ErrPurchaseOrderNotReceivable):
 		status, code, message = http.StatusConflict, "PURCHASE_ORDER_NOT_RECEIVABLE", "Purchase Order must be ORDERED or PARTIALLY_RECEIVED."
+	case errors.Is(err, usecase.ErrPurchaseOrderAlreadyReceived):
+		status, code, message = http.StatusConflict, "PURCHASE_ORDER_ALREADY_RECEIVED", "Purchase Order has already been fully received."
+	case errors.Is(err, usecase.ErrPurchaseOrderCancelled):
+		status, code, message = http.StatusConflict, "PURCHASE_ORDER_CANCELLED", "Purchase Order has been cancelled and cannot receive goods."
 	case errors.Is(err, usecase.ErrReceiptItemsRequired):
 		code, message = "GOODS_RECEIPT_ITEMS_REQUIRED", "At least one goods receipt item is required."
 	case errors.Is(err, usecase.ErrReceiptProductNotInOrder):
-		code, message = "GOODS_RECEIPT_PRODUCT_NOT_IN_ORDER", "Product is not part of the Purchase Order."
+		code, message = "GOODS_RECEIPT_PRODUCT_NOT_IN_ORDER", "Product received must be a product that exists in the purchase order."
+	case errors.Is(err, usecase.ErrReceiptQuantityInvalid):
+		status, code, message = http.StatusBadRequest, "GOODS_RECEIPT_QUANTITY_INVALID", "Received quantity must be greater than zero."
 	case errors.Is(err, usecase.ErrReceiptQuantityExceeded):
 		status, code, message = http.StatusConflict, "GOODS_RECEIPT_QUANTITY_EXCEEDED", "Received quantity exceeds ordered quantity."
 	case errors.Is(err, gorm.ErrRecordNotFound):
