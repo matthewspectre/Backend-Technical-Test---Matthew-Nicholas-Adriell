@@ -17,8 +17,7 @@ Clean Architecture Golang:
 ```
 
 
-# be_evindo
-```
+# Project Overview
 Aplikasi ini dirancang untuk mengelola proses inventory dan procurement, yang mencakup pengelolaan produk, supplier, warehouse, Purchase Request (PR), Purchase Order (PO), s
 erta proses penerimaan barang (Goods Receipt).
-```
+
