@@ -17,8 +17,11 @@ type Usecase interface {
 }
 
 var ErrPurchaseOrderNotReceivable = errors.New("purchase order must be ORDERED or PARTIALLY_RECEIVED")
+var ErrPurchaseOrderAlreadyReceived = errors.New("purchase order has already been fully received")
+var ErrPurchaseOrderCancelled = errors.New("purchase order has been cancelled and cannot receive goods")
 var ErrReceiptItemsRequired = errors.New("at least one goods receipt item is required")
-var ErrReceiptProductNotInOrder = errors.New("product is not part of the purchase order")
+var ErrReceiptProductNotInOrder = errors.New("product received must be a product that exists in the purchase order")
+var ErrReceiptQuantityInvalid = errors.New("received quantity must be greater than zero")
 var ErrReceiptQuantityExceeded = errors.New("received quantity exceeds ordered quantity")
 
 // purchaseOrderReader is kept small so this usecase only depends on the PO lookup it needs.
@@ -52,7 +55,14 @@ func (usecase *usecase) Create(ctx context.Context, data *entity.GoodsReceipt) e
 	if err != nil {
 		return err
 	}
-	if purchaseOrder.Status != "ORDERED" && purchaseOrder.Status != "PARTIALLY_RECEIVED" {
+	switch purchaseOrder.Status {
+	case "ORDERED", "PARTIALLY_RECEIVED":
+		// allowed
+	case "RECEIVED":
+		return ErrPurchaseOrderAlreadyReceived
+	case "CANCELLED":
+		return ErrPurchaseOrderCancelled
+	default:
 		return ErrPurchaseOrderNotReceivable
 	}
 	itemsByProduct := make(map[int]*purchaseorder.PurchaseOrderItem, len(purchaseOrder.Items))
@@ -66,7 +76,10 @@ func (usecase *usecase) Create(ctx context.Context, data *entity.GoodsReceipt) e
 			return ErrReceiptProductNotInOrder
 		}
 		item.PurchaseOrderItemID = orderItem.ID
-		if item.ReceivedQuantity <= 0 || orderItem.ReceivedQuantity+item.ReceivedQuantity > orderItem.OrderedQuantity {
+		if item.ReceivedQuantity <= 0 {
+			return ErrReceiptQuantityInvalid
+		}
+		if orderItem.ReceivedQuantity+item.ReceivedQuantity > orderItem.OrderedQuantity {
 			return ErrReceiptQuantityExceeded
 		}
 		if _, exists := seen[item.ProductID]; exists {
