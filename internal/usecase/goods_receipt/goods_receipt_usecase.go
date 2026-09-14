@@ -24,7 +24,6 @@ var ErrReceiptProductNotInOrder = errors.New("product received must be a product
 var ErrReceiptQuantityInvalid = errors.New("received quantity must be greater than zero")
 var ErrReceiptQuantityExceeded = errors.New("received quantity exceeds ordered quantity")
 
-// purchaseOrderReader is kept small so this usecase only depends on the PO lookup it needs.
 type purchaseOrderReader interface {
 	FindByID(ctx context.Context, id int64) (*purchaseorder.PurchaseOrder, error)
 }
