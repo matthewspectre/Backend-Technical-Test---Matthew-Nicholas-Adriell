@@ -14,6 +14,7 @@ import (
 
 	goodsreceipthandler "be_evindo/internal/handler/goods_receipt"
 	inventoryhandler "be_evindo/internal/handler/inventory"
+	inventorymovementhandler "be_evindo/internal/handler/inventory_movement"
 	producthandler "be_evindo/internal/handler/product"
 	purchaseorderhandler "be_evindo/internal/handler/purchase_order"
 	purchaserequesthandler "be_evindo/internal/handler/purchase_request"
@@ -22,6 +23,7 @@ import (
 	warehousehandler "be_evindo/internal/handler/warehouse"
 	goodsreceiptrepository "be_evindo/internal/postgres/goods_receipt"
 	inventoryrepository "be_evindo/internal/postgres/inventory"
+	inventorymovementrepository "be_evindo/internal/postgres/inventory_movement"
 	productrepository "be_evindo/internal/postgres/product"
 	purchaseorderrepository "be_evindo/internal/postgres/purchase_order"
 	purchaserequestrepository "be_evindo/internal/postgres/purchase_request"
@@ -31,6 +33,7 @@ import (
 	"be_evindo/internal/router"
 	goodsreceiptusecase "be_evindo/internal/usecase/goods_receipt"
 	inventoryusecase "be_evindo/internal/usecase/inventory"
+	inventorymovementusecase "be_evindo/internal/usecase/inventory_movement"
 	productusecase "be_evindo/internal/usecase/product"
 	purchaseorderusecase "be_evindo/internal/usecase/purchase_order"
 	purchaserequestusecase "be_evindo/internal/usecase/purchase_request"
@@ -67,6 +70,9 @@ func main() {
 	goodsReceiptRepository := goodsreceiptrepository.NewRepository(database)
 	goodsReceiptUsecase := goodsreceiptusecase.NewUsecase(goodsReceiptRepository, purchaseOrderRepository)
 	goodsReceiptHandler := goodsreceipthandler.NewHandler(goodsReceiptUsecase)
+	inventoryMovementRepository := inventorymovementrepository.NewRepository(database)
+	inventoryMovementUsecase := inventorymovementusecase.NewUsecase(inventoryMovementRepository)
+	inventoryMovementHandler := inventorymovementhandler.NewHandler(inventoryMovementUsecase)
 	userRepository := userrepository.NewRepository(database)
 	userUsecase := userusecase.NewUserUsecase(userRepository, envOrDefault("JWT_SECRET", "be-evindo-development-secret"))
 	userHandler := userhandler.NewUserHandler(userUsecase)
@@ -81,6 +87,7 @@ func main() {
 	router.RegisterSupplierRoutes(engine, supplierHandler, userUsecase)
 	router.RegisterWarehouseRoutes(engine, warehouseHandler, userUsecase)
 	router.RegisterInventoryRoutes(engine, inventoryHandler, userUsecase)
+	router.RegisterInventoryMovementRoutes(engine, inventoryMovementHandler, userUsecase)
 	router.RegisterPurchaseRequestRoutes(engine, purchaseRequestHandler, userUsecase)
 	router.RegisterPurchaseOrderRoutes(engine, purchaseOrderHandler, userUsecase)
 	router.RegisterGoodsReceiptRoutes(engine, goodsReceiptHandler, userUsecase)
