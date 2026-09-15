@@ -9,7 +9,7 @@ type ProductModel struct {
 	Unit      string    `gorm:"column:unit"`
 	IsActive  int16     `gorm:"column:is_active"`
 	CreatedAt time.Time `gorm:"column:created_at"`
-	UpdatedAt string    `gorm:"column:updated_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
 }
 
 func (ProductModel) TableName() string {
