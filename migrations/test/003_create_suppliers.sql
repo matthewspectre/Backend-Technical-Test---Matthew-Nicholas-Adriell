@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS public.supplier (
     address VARCHAR(255),
     is_active SMALLINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL,
+    updated_at TIMESTAMPTZ NULL,
     CONSTRAINT supplier_email_unique UNIQUE (email)
 );

@@ -24,8 +24,8 @@ func NewHandler(uc usecase.Usecase) *Handler {
 	return &Handler{uc: uc}
 }
 
-func formatResponseTime(value time.Time) *string {
-	if value.IsZero() {
+func formatResponseTime(value *time.Time) *string {
+	if value == nil || value.IsZero() {
 		return nil
 	}
 	formatted := value.Format(responseTimeLayout)
