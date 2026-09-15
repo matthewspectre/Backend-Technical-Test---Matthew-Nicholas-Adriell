@@ -11,7 +11,7 @@ type SupplierModel struct {
 	Address     string    `gorm:"column:address"`
 	IsActive    int16     `gorm:"column:is_active"`
 	CreatedAt   time.Time `gorm:"column:created_at"`
-	UpdatedAt   string    `gorm:"column:updated_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
 }
 
 func (SupplierModel) TableName() string {
