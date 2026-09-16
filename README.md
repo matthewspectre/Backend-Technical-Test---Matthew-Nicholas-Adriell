@@ -224,6 +224,12 @@ Constraint:
      `011_create_goods_receipt_items.sql`
      `012_create_inventory_movements.sql`
      <img width="1237" height="776" alt="image" src="https://github.com/user-attachments/assets/36b83314-3330-4225-8255-8b5e9c8466bc" />
+   - Setelah clone repository, untuk menjalankan file Go, klik 'Run' pada pojok kanan, lalu start debugging (tpmbol alternatif = F5)
+     <img width="1887" height="562" alt="image" src="https://github.com/user-attachments/assets/bac5b2a4-ea93-475e-97b7-0d7b896ecf25" />
+   - server berjalan pada http://localhost:8080
+     <img width="1384" height="235" alt="image" src="https://github.com/user-attachments/assets/707d2562-b5c3-47f1-a20c-d76dda5846b7" />
+
+
 
 
 
