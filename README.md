@@ -1,5 +1,3 @@
-#Project masih on progress
-
 # Project Overview
 Aplikasi ini dirancang untuk mengelola proses inventory dan procurement, yang mencakup pengelolaan produk, supplier, warehouse, Purchase Request (PR), Purchase Order (PO), 
 serta proses penerimaan barang (Goods Receipt).
@@ -21,7 +19,6 @@ serta proses penerimaan barang (Goods Receipt).
 | 🐙 **Git & GitHub**        | Version control dan repository management                                            |
 
 ### 🏛️ Architecture
-
 Project ini menerapkan **Clean Architecture** dengan struktur layer sebagai berikut:
 
 ```text
@@ -185,4 +182,48 @@ Constraint:
 
 ```
 <img width="775" height="795" alt="image" src="https://github.com/user-attachments/assets/03e1d564-8100-4c51-bdac-79984230a906" />
+
+```text
+**Alur Bisnis Database :**
+1. User membuat purchase_request.
+2. Purchase request memiliki detail list produk pada purchase_request_items.
+3. Setelah disetujui, dibuat satu purchase_order.
+4. Purchase order memiliki detail pada purchase_order_items.
+5. Supplier mengirim barang.
+6. Barang dicatat melalui goods_receipts dan goods_receipt_items.
+7. Update stok pada inventory sesuai barang yang diterima saat goods_receipt dibuat.
+8. Perubahan stok dicatat pada inventory_movements.
+```
+
+# Cara menjalankan project dari awal
+1. download Dbeaver melalui link berikut : https://dbeaver.io/download/
+2. download PostgreSQL melalui link berikut : https://www.postgresql.org/download/
+3. download Golang melalui link berikut : https://go.dev/doc/install
+4. Buat database PostgreSQL
+   - Buka DBeaver dan buat koneksi ke PostgreSQL.
+   - Gunakan konfigurasi database berikut:
+     Host: `localhost`
+     Port: `5432`
+     Database: `be_2evindo`
+     Username: `postgres`
+     Password: password PostgreSQL pribadi
+   - dropdown postgres dan pada folder 'Databases' klik kanan lalu pilih 'Create New Database dengan nama " be_2evindo'
+   - Klik kanan database `be_2evindo`, lalu pilih **SQL Editor > New SQL Script**.
+   - Buka file migration dari folder `migrations/test`.
+   - Jalankan / copy query sesuai urutan berikut, mulai dari `001` sampai `012` (bisa menggunakan ctrl + enter pada dbeaver):
+     `001_product_test.sql`
+     `002_create_users.sql`
+     `003_create_suppliers.sql`
+     `004_create_warehouses.sql`
+     `005_create_inventories.sql`
+     `006_create_purchase_requests.sql`
+     `007_create_purchase_orders.sql`
+     `008_create_purchase_order_items.sql`
+     `009_update_purchase_order_status_constraint.sql`
+     `010_create_goods_receipts.sql`
+     `011_create_goods_receipt_items.sql`
+     `012_create_inventory_movements.sql`
+     <img width="1237" height="776" alt="image" src="https://github.com/user-attachments/assets/36b83314-3330-4225-8255-8b5e9c8466bc" />
+
+
 
