@@ -182,7 +182,7 @@ Constraint:
 
  jenis movement dilakukan melalui PURCHASE_RECEIPT
 
-<img width="775" height="795" alt="image" src="https://github.com/user-attachments/assets/08c0d607-b4b6-4b61-b713-d4370679062e" />
 
 ```
+<img width="775" height="795" alt="image" src="https://github.com/user-attachments/assets/03e1d564-8100-4c51-bdac-79984230a906" />
 
